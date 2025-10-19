@@ -1,46 +1,50 @@
 #!/usr/bin/python3
 """
-Python script that gathers all employees' TODO lists
-and exports them to todo_all_employees.json.
+Python script that returns information about an employee's
+TODO list progress using a REST API.
 """
 
-import json
 import requests
+import sys
 
 
-def fetch_all_users():
-    """Fetch all users from the API."""
-    url = "https://jsonplaceholder.typicode.com/users"
-    response = requests.get(url)
-    response.raise_for_status()
-    return response.json()
+def get_employee_todo_progress(employee_id):
+    """
+    Fetch and display TODO list progress for a given employee.
+    """
+    base_url = "https://jsonplaceholder.typicode.com"
+    user_url = f"{base_url}/users/{employee_id}"
+    todos_url = f"{base_url}/users/{employee_id}/todos"
 
+    # Fetch employee information and todos
+    user_response = requests.get(user_url)
+    todos_response = requests.get(todos_url)
 
-def fetch_user_todos(user_id):
-    """Fetch TODOs for a specific user by ID."""
-    url = f"https://jsonplaceholder.typicode.com/todos?userId={user_id}"
-    response = requests.get(url)
-    response.raise_for_status()
-    return response.json()
+    if user_response.status_code != 200:
+        print("Error: Employee not found.")
+        return
 
+    employee = user_response.json()
+    todos = todos_response.json()
 
-def main():
-    """Gather all TODOs and export to JSON."""
-    all_users_data = {}
-    users = fetch_all_users()
+    employee_name = employee.get("name")
+    total_tasks = len(todos)
+    done_tasks = [task for task in todos if task.get("completed")]
 
-    for user in users:
-        user_id = str(user.get("id"))
-        username = user.get("username")
-        todos = fetch_user_todos(user_id)
-        all_users_data[user_id] = [
-            {"username": username, "task": task.get("title"), "completed": task.get("completed")}
-            for task in todos
-        ]
-
-    with open("todo_all_employees.json", "w", encoding="utf-8") as json_file:
-        json.dump(all_users_data, json_file)
+    print(f"Employee {employee_name} is done with tasks({len(done_tasks)}/{total_tasks}):")
+    for task in done_tasks:
+        print(f"\t {task.get('title')}")
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) != 2:
+        print("Usage: ./0-gather_data_from_an_API.py <employee_id>")
+        sys.exit(1)
+
+    try:
+        employee_id = int(sys.argv[1])
+    except ValueError:
+        print("Error: Employee ID must be an integer.")
+        sys.exit(1)
+
+    get_employee_todo_progress(employee_id)
