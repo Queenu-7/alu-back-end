@@ -1,39 +1,10 @@
 #!/usr/bin/python3
 """
-Python script that returns information about an employee's
-TODO list progress using a REST API.
+Script that uses a REST API to return TODO list progress
+for a given employee ID.
 """
-
 import requests
 import sys
-
-
-def get_employee_todo_progress(employee_id):
-    """
-    Fetch and display TODO list progress for a given employee.
-    """
-    base_url = "https://jsonplaceholder.typicode.com"
-    user_url = f"{base_url}/users/{employee_id}"
-    todos_url = f"{base_url}/users/{employee_id}/todos"
-
-    # Fetch employee information and todos
-    user_response = requests.get(user_url)
-    todos_response = requests.get(todos_url)
-
-    if user_response.status_code != 200:
-        print("Error: Employee not found.")
-        return
-
-    employee = user_response.json()
-    todos = todos_response.json()
-
-    employee_name = employee.get("name")
-    total_tasks = len(todos)
-    done_tasks = [task for task in todos if task.get("completed")]
-
-    print(f"Employee {employee_name} is done with tasks({len(done_tasks)}/{total_tasks}):")
-    for task in done_tasks:
-        print(f"\t {task.get('title')}")
 
 
 if __name__ == "__main__":
@@ -44,7 +15,30 @@ if __name__ == "__main__":
     try:
         employee_id = int(sys.argv[1])
     except ValueError:
-        print("Error: Employee ID must be an integer.")
+        print("Employee ID must be an integer.")
         sys.exit(1)
 
-    get_employee_todo_progress(employee_id)
+    # API endpoints
+    user_url = "https://jsonplaceholder.typicode.com/users/{}".format(
+        employee_id
+    )
+    todos_url = "https://jsonplaceholder.typicode.com/todos?userId={}".format(
+        employee_id
+    )
+
+    # Fetch data
+    user = requests.get(user_url).json()
+    todos = requests.get(todos_url).json()
+
+    employee_name = user.get("name")
+    total_tasks = len(todos)
+    done_tasks = [task for task in todos if task.get("completed")]
+
+    print(
+        "Employee {} is done with tasks({}/{}):".format(
+            employee_name, len(done_tasks), total_tasks
+        )
+    )
+
+    for task in done_tasks:
+        print("\t {}".format(task.get("title")))
