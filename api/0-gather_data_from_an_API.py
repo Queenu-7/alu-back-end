@@ -1,41 +1,44 @@
 #!/usr/bin/python3
 """
-This script uses a REST API to return information about an employee's TODO list progress.
-It takes an employee ID as a command-line argument and displays the number of completed
-and total tasks, as well as the titles of the completed tasks.
+Script that uses a REST API to return TODO list progress
+for a given employee ID.
 """
 
 import requests
 import sys
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: {} <employee_id>".format(sys.argv[0]))
+    # Ensure the script receives exactly one integer argument
+    if len(sys.argv) != 2:
+        print("Usage: ./0-gather_data_from_an_API.py <employee_id>")
         sys.exit(1)
 
-    try:
-        employee_id = int(sys.argv[1])
-    except ValueError:
-        print("Employee ID must be an integer.")
+    employee_id = sys.argv[1]
+
+    # Base URLs for user and todos
+    user_url = f"https://jsonplaceholder.typicode.com/users/{employee_id}"
+    todos_url = f"https://jsonplaceholder.typicode.com/todos?userId={employee_id}"
+
+    # Fetch user and todos data
+    user_response = requests.get(user_url)
+    todos_response = requests.get(todos_url)
+
+    # Ensure both requests succeeded
+    if user_response.status_code != 200 or todos_response.status_code != 200:
+        print("Error: Unable to fetch data from API.")
         sys.exit(1)
 
-    url_user = f"https://jsonplaceholder.typicode.com/users/{employee_id}"
-    url_todos = f"https://jsonplaceholder.typicode.com/todos?userId={employee_id}"
+    user_data = user_response.json()
+    todos_data = todos_response.json()
 
-    user_response = requests.get(url_user)
-    todos_response = requests.get(url_todos)
+    # Extract name and task info
+    employee_name = user_data.get("name")
+    total_tasks = len(todos_data)
+    done_tasks = [task for task in todos_data if task.get("completed")]
 
-    if user_response.status_code != 200:
-        print("User not found.")
-        sys.exit(1)
+    # Print summary
+    print(f"Employee {employee_name} is done with tasks({len(done_tasks)}/{total_tasks}):")
 
-    user = user_response.json()
-    todos = todos_response.json()
-
-    name = user.get("name")
-    total_tasks = len(todos)
-    done_tasks = [task for task in todos if task.get("completed")]
-
-    print(f"Employee {name} is done with tasks({len(done_tasks)}/{total_tasks}):")
+    # Print completed task titles
     for task in done_tasks:
-        print("\t {}".format(task.get("title")))
+        print(f"\t {task.get('title')}")
