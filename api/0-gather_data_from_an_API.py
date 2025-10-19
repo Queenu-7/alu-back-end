@@ -1,4 +1,10 @@
 #!/usr/bin/python3
+"""
+This script uses a REST API to return information about an employee's TODO list progress.
+It takes an employee ID as a command-line argument and displays the number of completed
+and total tasks, as well as the titles of the completed tasks.
+"""
+
 import requests
 import sys
 
@@ -33,4 +39,3 @@ if __name__ == "__main__":
     print(f"Employee {name} is done with tasks({len(done_tasks)}/{total_tasks}):")
     for task in done_tasks:
         print("\t {}".format(task.get("title")))
-
