@@ -13,15 +13,13 @@ def get_employee_todo_progress(employee_id):
     
     Args:
         employee_id (int): The ID of the employee
-    
-    Returns:
-        None: Prints the result to standard output
     """
     # Base URL for the JSONPlaceholder API
     base_url = "https://jsonplaceholder.typicode.com"
     
     # Get employee details
-    user_response = requests.get(f"{base_url}/users/{employee_id}")
+    user_url = f"{base_url}/users/{employee_id}"
+    user_response = requests.get(user_url)
     if user_response.status_code != 200:
         print(f"Error: Employee with ID {employee_id} not found")
         return
@@ -30,7 +28,8 @@ def get_employee_todo_progress(employee_id):
     employee_name = user_data.get('name')
     
     # Get TODO list for the employee
-    todos_response = requests.get(f"{base_url}/users/{employee_id}/todos")
+    todos_url = f"{base_url}/users/{employee_id}/todos"
+    todos_response = requests.get(todos_url)
     if todos_response.status_code != 200:
         print(f"Error: Could not fetch TODO list for employee {employee_id}")
         return
@@ -39,15 +38,21 @@ def get_employee_todo_progress(employee_id):
     
     # Calculate task statistics
     total_tasks = len(todos_data)
-    completed_tasks = sum(1 for task in todos_data if task.get('completed'))
+    completed_tasks = 0
+    completed_titles = []
     
-    # Display the progress
-    print(f"Employee {employee_name} is done with tasks({completed_tasks}/{total_tasks}):")
-    
-    # Display completed task titles
     for task in todos_data:
         if task.get('completed'):
-            print(f"     {task.get('title')}")
+            completed_tasks += 1
+            completed_titles.append(task.get('title'))
+    
+    # Display the progress
+    print(f"Employee {employee_name} is done with "
+          f"tasks({completed_tasks}/{total_tasks}):")
+    
+    # Display completed task titles
+    for title in completed_titles:
+        print(f"\t {title}")
 
 
 if __name__ == "__main__":
