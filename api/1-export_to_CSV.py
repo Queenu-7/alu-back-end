@@ -45,6 +45,6 @@ if __name__ == "__main__":
             writer.writerow([
                 employee_id,
                 username,
-                task.get("completed"),
+                str(task.get("completed")),
                 task.get("title")
             ])
